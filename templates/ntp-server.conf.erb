@@ -1,0 +1,47 @@
+# File managed by puppet
+
+<% if has_variable?("ntp_log_stats") and ntp_log_stats -%>
+statsdir /var/log/ntpstats/
+statistics loopstats peerstats clockstats
+filegen loopstats file loopstats type day enable
+filegen peerstats file peerstats type day enable
+filegen clockstats file clockstats type day enable
+<% else -%>
+# No loggin setted up - please set $ntp_log_stats to true in your puppet
+<% end -%>
+driftfile /var/lib/ntp/ntp.drift
+<% if has_variable?("ntp_server_list") -%>
+<% ntp_server_list.each do |ntp_server| -%>
+server <%= ntp_server %>
+<% end -%>
+<% else -%>
+# no ntp server provided - please set $ntp_server_list in your puppet
+server 0.pool.ntp.org
+server 1.pool.ntp.org
+server 2.pool.ntp.org
+server 3.pool.ntp.org
+<% end -%>
+<% if has_variable?("ntp_server_restrict") -%>
+<% ntp_server_restrict.each do |ntp_restrict| -%>
+<%= ntp_restrict %>
+<% end -%>
+<% else -%>
+# Default restrictions - please set $ntp_restrict in your puppet
+restrict -4 default kod notrap nomodify nopeer noquery
+restrict -6 default kod notrap nomodify nopeer noquery
+# Local users may interrogate the ntp server more closely.
+restrict 127.0.0.1
+restrict ::1
+<% end -%>
+<% if has_variable?("ntp_server_broadcast") -%>
+<% if has_variable?("ntp_server_noauth") and ntp_server_noauth -%>
+disable auth
+<% else -%>
+# auth is enabled - please set $ntp_server_noauth in your puppet
+<% end -%>
+<% ntp_server_broadcast.each do |ntp_broadcast| -%>
+broadcast <%= ntp_broadcast %>
+<% end -%>
+<% else -%>
+# No broadcast provided - please set $ntp_server_broadcast in your puppet
+<% end -%>
